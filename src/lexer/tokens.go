@@ -6,9 +6,6 @@ type TokenKind int
 
 const (
 	EOF TokenKind = iota
-	NULL
-	TRUE
-	FALSE
 	NUMBER
 	STRING
 	IDENTIFIER
@@ -75,7 +72,31 @@ const (
 	EXPORT
 	TYPEOF
 	IN
+	NULL
+	TRUE
+	FALSE
 )
+
+var reservedKeywords map[string]TokenKind = map[string]TokenKind{
+	"true":    TRUE,
+	"false":   FALSE,
+	"null":    NULL,
+	"let":     LET,
+	"const":   CONST,
+	"class":   CLASS,
+	"new":     NEW,
+	"import":  IMPORT,
+	"from":    FROM,
+	"fn":      FN,
+	"if":      IF,
+	"else":    ELSE,
+	"foreach": FOREACH,
+	"while":   WHILE,
+	"for":     FOR,
+	"export":  EXPORT,
+	"typeof":  TYPEOF,
+	"in":  IN,
+}
 
 type Token struct {
 	Value string

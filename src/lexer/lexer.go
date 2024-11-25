@@ -46,10 +46,10 @@ func createLexer(source string) *lexer {
 		source: source,
 		patterns: []regexPattern{
 			{regexp.MustCompile(`\s+`), skipHandler},
-			// {regexp.MustCompile(`\/\/.*`), commentHandler},
-			// {regexp.MustCompile(`"[^"]*"`), stringHandler},
+			{regexp.MustCompile(`\/\/.*`), skipHandler},
+			{regexp.MustCompile(`"[^"]*"`), stringHandler},
 			{regexp.MustCompile(`[0-9]+(\.[0-9]+)?`), numberHandler},
-			// {regexp.MustCompile(`[a-zA-Z_][a-zA-Z0-9_]*`), symbolHandler},
+			{regexp.MustCompile(`[a-zA-Z_][a-zA-Z0-9_]*`), symbolHandler},
 			{regexp.MustCompile(`\[`), defaultHandler(OPEN_BRACKET, "[")},
 			{regexp.MustCompile(`\]`), defaultHandler(CLOSE_BRACKET, "]")},
 			{regexp.MustCompile(`\{`), defaultHandler(OPEN_CURLY, "{")},
@@ -123,6 +123,25 @@ func Tokenize(source string) []Token {
 func numberHandler(lex *lexer, regex *regexp.Regexp) {
 	match := regex.FindString(lex.remainder())
 	lex.push(NewToken(NUMBER, match))
+	lex.advanceN(len(match))
+}
+
+func stringHandler(lex *lexer, regex *regexp.Regexp) {
+	match := regex.FindStringIndex(lex.remainder())
+	stringLiteral := lex.remainder()[match[0]+1 : match[1]-1]
+	lex.push(NewToken(STRING, stringLiteral))
+	lex.advanceN(len(stringLiteral) + 2)
+}
+
+// const key = 4;
+func symbolHandler(lex *lexer, regex *regexp.Regexp) {
+	match := regex.FindString(lex.remainder())
+	// check if reserved keyword or regular identifier
+	if kind, ok := reservedKeywords[match]; ok {
+		lex.push(NewToken(kind, match))
+	} else {
+		lex.push(NewToken(IDENTIFIER, match))
+	}
 	lex.advanceN(len(match))
 }
 
